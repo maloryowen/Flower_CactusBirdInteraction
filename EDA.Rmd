@@ -25,6 +25,7 @@ head(site)
 
 ```
 
+###Site Wide Exploration 
 ```{r Site Wide}
 #histogram of bird behaviors
 ggplot(site, aes(x=behavior)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
@@ -34,7 +35,7 @@ ggplot(site, aes(x=behavior)) + geom_bar() + theme(axis.text.x = element_text(an
 ggplot(site, aes(x=mesohabitat)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 #histogram of bird species
-ggplot(site, aes(x=taxa)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+ggplot(site, aes(x=species)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
 #lump into broader taxa and functional groups
 
 #histogram of bird distance from transect
