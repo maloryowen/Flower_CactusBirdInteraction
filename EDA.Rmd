@@ -1,0 +1,45 @@
+---
+title: "EDA"
+output: html_document
+---
+
+Here, we will explore the data collected during the Spring 2019 flowering field season at the Granite Mountains desert research center. 
+
+Some key datasets:
++ Bird visitation at focal cactus: the number of bird visitations to a focal cactus individual, with manipulated showiness of flowers (both real and fake) on a cactus at zero, fifteen, and thirty flowers per cactus. 
++ Cactus allocation: a measurement of reproductive and non reproductive structures of 100 cactus indivduals. This dataset will be paired with data on fruit production of the same individuals.
++ Line transects: site-wide measurements of bird diversity, mesohabitats, and behaviors
++ Cactus architecture temperature: records of micro-habitat temperature related to cacti by measuring the top of the cactus's canopy, within the cactus's canopy, and the cactus's understory.
++ Interspecific allocation of cacti: haphazardly collected data on the reproductive output as well as size of three cactus species (*Opuntia basilaris*, *Cylindropuntia echinocarpa*, and *Cylindropuntia acanthocarpa*)
+
+```{r libraries, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(kableExtra)
+```
+
+```{r datasets, include=FALSE}
+#bring in datasets of interest
+site <- read.csv("~/Masters/Flower_CactusBirdInteractionR/data/line_transects/line_transects.csv")
+head(site)
+
+```
+
+```{r Site Wide}
+#histogram of bird behaviors
+ggplot(site, aes(x=behavior)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+#lump into smaller groups (e.g. movement, passive, vocalization, mutualistic interaction)
+
+#histogram of bird mesohabitats
+ggplot(site, aes(x=mesohabitat)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+#histogram of bird species
+ggplot(site, aes(x=taxa)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+#lump into broader taxa and functional groups
+
+#histogram of bird distance from transect
+ggplot(site, aes(x=distance)) + geom_bar() 
+
+
+```
+
