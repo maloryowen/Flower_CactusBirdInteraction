@@ -16,6 +16,7 @@ Some key datasets:
 library(ggplot2)
 library(dplyr)
 library(kableExtra)
+library(ggpubr)
 ```
 
 ```{r datasets, include=FALSE}
@@ -27,20 +28,88 @@ head(site)
 
 ###Site Wide Exploration 
 ```{r Site Wide}
+#summary stats
+unique(site$species)
+#41 unique species
+unique(site$behavior)
+#14 unique behaviors
+unique(site$mesohabitat)
+#10 unique mesohabitats
+
+
 #histogram of bird behaviors
-ggplot(site, aes(x=behavior)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
-#lump into smaller groups (e.g. movement, passive, vocalization, mutualistic interaction)
+behav <- ggplot(site, aes(x=behavior)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+#lump into smaller groups 
+bbehav <- ggplot(site, aes(x=broad_behavior)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust =1))
 
 #histogram of bird mesohabitats
-ggplot(site, aes(x=mesohabitat)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+meso <- ggplot(site, aes(x=mesohabitat)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 #histogram of bird species
-ggplot(site, aes(x=species)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+species <- ggplot(site, aes(x=species)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
 #lump into broader taxa and functional groups
+order <- ggplot(site, aes(x=order)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+family <- ggplot(site, aes(x=family)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 #histogram of bird distance from transect
-ggplot(site, aes(x=distance)) + geom_bar() 
+dist <- ggplot(site, aes(x=distance)) + geom_bar() 
 
 
+#make dataset to analyze that includes only visuals
+site_visuals <- na.omit(site)
+head(site_visuals)
+
+#summary stats
+unique(site_visuals$species)
+#41 unique species
+unique(site_visuals$behavior)
+#14 unique behaviors
+unique(site_visuals$mesohabitat)
+#10 unique mesohabitats
+#counts are the same for visuals versus no visuals
+
+#histogram of bird behaviors
+behavv <- ggplot(site_visuals, aes(x=behavior)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+#lump into smaller groups 
+bbehavv <- ggplot(site_visuals, aes(x=broad_behavior)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust =1))
+
+#histogram of bird mesohabitats
+mesov <- ggplot(site_visuals, aes(x=mesohabitat)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+#histogram of bird species
+speciesv <- ggplot(site_visuals, aes(x=species)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+#lump into broader taxa and functional groups
+orderv <- ggplot(site_visuals, aes(x=order)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+familyv <- ggplot(site_visuals, aes(x=family)) + geom_bar() + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+#histogram of bird distance from transect
+distv <- ggplot(site_visuals, aes(x=distance)) + geom_bar() 
+
+#put together on one plot for side-by-side comparison
+
+#taxanomic grid
+tax <- ggarrange(species, speciesv, family, familyv, order, orderv,
+                    labels = c("A", "B", "C", "D", "E", "F"),
+                    ncol = 2, nrow = 3)
+tax
+
+#behavior grid
+bhv <- ggarrange(behav, behavv, bbehav, bbehavv,
+                   labels = c("A","B", "C", "D"),
+                   ncol = 2, nrow = 2)
+bhv
+
+#mesohabitat grid
+mesohabitat <- ggarrange(meso, mesov,
+                         labels = c("A", "B"),
+                         ncol = 1, nrow =2)
+mesohabitat
+
+#distance grid
+distance <- ggarrange(dist, distv,
+                      labels = c("A", "B"),
+                      ncol = 1, nrow =2)
+distance
+  
 ```
 
