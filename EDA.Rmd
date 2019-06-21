@@ -17,6 +17,9 @@ library(ggplot2)
 library(dplyr)
 library(kableExtra)
 library(ggpubr)
+library(tidyverse)
+library(reshape)
+library(reshape2)
 ```
 
 ```{r datasets, include=FALSE}
@@ -27,7 +30,7 @@ head(site)
 ```
 
 ###Site Wide Exploration 
-```{r Site Wide}
+```{r Site Wide Vis}
 #summary stats
 unique(site$species)
 #41 unique species
@@ -89,27 +92,59 @@ distv <- ggplot(site_visuals, aes(x=distance)) + geom_bar()
 
 #taxanomic grid
 tax <- ggarrange(species, speciesv, family, familyv, order, orderv,
-                    labels = c("A", "B", "C", "D", "E", "F"),
+                    labels = c("All", "Visuals", "All", "Visuals", "All", "Visuals"),
                     ncol = 2, nrow = 3)
 tax
 
 #behavior grid
 bhv <- ggarrange(behav, behavv, bbehav, bbehavv,
-                   labels = c("A","B", "C", "D"),
+                   labels = c("All","Visuals", "All", "Visuals"),
                    ncol = 2, nrow = 2)
 bhv
 
 #mesohabitat grid
 mesohabitat <- ggarrange(meso, mesov,
-                         labels = c("A", "B"),
+                         labels = c("All", "Visuals"),
                          ncol = 1, nrow =2)
 mesohabitat
 
 #distance grid
 distance <- ggarrange(dist, distv,
-                      labels = c("A", "B"),
+                      labels = c("A", "Visuals"),
                       ncol = 1, nrow =2)
 distance
-  
+
+
+```
+
+```{r Site Wide Stats}
+#Behavior stats: which behaviors are most common?
+
+#get counts for each behavior daily
+daily.behav <- (data.frame(table(site$behavior, site$date, site$walk)))
+
+shapiro.test(daily.behav$Freq)
+#it's normally distributed
+
+#run ANOVA 
+dba <- aov(Freq ~ Var1, daily.behav)
+summary(dba)
+#p-value < 2e-16, very significant (as expected)
+#Now see what stood out and in what direction
+tuk1 <- TukeyHSD(dba, "Var1", ordered = TRUE)
+tuktab1 <- data.frame(tuk1$Var1)
+tuktab1 <- tuktab1 %>% rownames_to_column("behavior") 
+tuktab1 <- transform(tuktab1, behavior = colsplit(behavior, split = "\\-", names = c('a', 'b'))) 
+tuktab1$diff <- NULL 
+tuktab1$lwr <- NULL 
+tuktab1$upr<- NULL
+names(tuktab1) <- c("behav1", "behav2")
+tuktab1 <- mutate(tuktab1, behav2 = "")
+separate(tuktab1, behavior, into = behav2, remove=TRUE)
+
+#Very complicated, need a way to summarize results
+acast(tuktab1, behavior.a ~ behavior.b , value.var='p.adj', 
+      fun.aggregate=sum, margins=TRUE)
+
 ```
 
