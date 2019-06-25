@@ -30,7 +30,7 @@ head(site)
 ```
 
 ###Site Wide Exploration 
-```{r Site Wide Vis}
+```{r Site Wide Plots}
 #summary stats
 unique(site$species)
 #41 unique species
@@ -117,7 +117,7 @@ distance
 
 ```
 
-```{r Site Wide Stats}
+```{r Site Wide Behavior Stats}
 #Behavior stats: which behaviors are most common?
 
 #get counts for each behavior daily
@@ -130,21 +130,68 @@ shapiro.test(daily.behav$Freq)
 dba <- aov(Freq ~ Var1, daily.behav)
 summary(dba)
 #p-value < 2e-16, very significant (as expected)
+
 #Now see what stood out and in what direction
+#Dunnett Test
+
+
+#Tukey HSD
 tuk1 <- TukeyHSD(dba, "Var1", ordered = TRUE)
 tuktab1 <- data.frame(tuk1$Var1)
 tuktab1 <- tuktab1 %>% rownames_to_column("behavior") 
-tuktab1 <- transform(tuktab1, behavior = colsplit(behavior, split = "\\-", names = c('a', 'b'))) 
-tuktab1$diff <- NULL 
+tuktab1 <- separate(tuktab1, behavior, into = c("behav1", "behav2"), sep = "-")
+tuktab1$diff <- NULL
 tuktab1$lwr <- NULL 
-tuktab1$upr<- NULL
-names(tuktab1) <- c("behav1", "behav2")
-tuktab1 <- mutate(tuktab1, behav2 = "")
-separate(tuktab1, behavior, into = behav2, remove=TRUE)
+tuktab1$upr<- NULL 
+
+
+
+#Very complicated, need a way to summarize results
+tuktab1 <- select(tuktab1$behavior.1, tuktab2$behavior.2, matches(tuktab1$p.adj))
+
+matrix <- cbind(tuktab1$behavior.1, tuktab1$behavior.2, tuktab1$p.adj)
+
+acast(tuktab1, behavior.a ~ behavior.b , value.var='p.adj', 
+      fun.aggregate=sum, margins=TRUE)
+
+```
+
+```{r Site Wide Behavior Visuals only Stats}
+#We can see that there are differences in how behavior was observed, but let's redo and only consider visuals.
+
+#get counts for each behavior daily
+daily.behav.vis <- (data.frame(table(site_visuals$behavior, site_visuals$date, site_visuals$walk)))
+
+shapiro.test(daily.behav.vis$Freq)
+#it's normally distributed
+
+#run ANOVA 
+dba.vis <- aov(Freq ~ Var1, daily.behav.vis)
+summary(dba.vis)
+#p-value < 2e-16, very significant (as expected)
+
+#Now see what stood out and in what direction
+
+#Dunnett Test
+DunnettTest(formula = Freq ~ Var1, data = daily.behavior.vis)
+
+#Tukey HSD
+tuk2 <- TukeyHSD(dba, "Var1", ordered = TRUE)
+tuktab2 <- data.frame(tuk2$Var1)
+tuktab2 <- tuktab2 %>% rownames_to_column("behavior") 
+tuktab2 <- transform(tuktab2, behavior = colsplit(behavior, split = "-", names = c('behavior1', 'behavior2'))) 
+tuktab2$diff <- NULL 
+tuktab2$lwr <- NULL 
+tuktab2$upr<- NULL
 
 #Very complicated, need a way to summarize results
 acast(tuktab1, behavior.a ~ behavior.b , value.var='p.adj', 
       fun.aggregate=sum, margins=TRUE)
+
+
+```
+
+```{r Site Wide diversity stats}
 
 ```
 
