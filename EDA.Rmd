@@ -6,9 +6,9 @@ output: html_document
 Here, we will explore the data collected during the Spring 2019 flowering field season at the Granite Mountains desert research center. 
 
 Some key datasets:
-+ Bird visitation at focal cactus: the number of bird visitations to a focal cactus individual, with manipulated showiness of flowers (both real and fake) on a cactus at zero, fifteen, and thirty flowers per cactus. 
++ Bird visitation: the number of bird visitations to a focal cactus individual, with manipulated showiness of flowers (both real and fake) on a cactus at zero, fifteen, and thirty flowers per cactus. First dataset is only focal 1 hour observations. 
 + Cactus allocation: a measurement of reproductive and non reproductive structures of 100 cactus indivduals. This dataset will be paired with data on fruit production of the same individuals.
-+ Line transects: site-wide measurements of bird diversity, mesohabitats, and behaviors
++ Side Wide: entire-site measurements of bird diversity, mesohabitats, and behaviors collected by line transect walks
 + Cactus architecture temperature: records of micro-habitat temperature related to cacti by measuring the top of the cactus's canopy, within the cactus's canopy, and the cactus's understory.
 + Interspecific allocation of cacti: haphazardly collected data on the reproductive output as well as size of three cactus species (*Opuntia basilaris*, *Cylindropuntia echinocarpa*, and *Cylindropuntia acanthocarpa*)
 
@@ -20,17 +20,22 @@ library(ggpubr)
 library(tidyverse)
 library(reshape)
 library(reshape2)
+library(ggmap)
+
+register_google(key="")
 ```
 
 ```{r datasets, include=FALSE}
-#bring in datasets of interest
-site <- read.csv("~/Masters/Flower_CactusBirdInteractionR/data/line_transects/line_transects.csv")
-head(site)
+
 
 ```
 
 ###Site Wide Exploration 
 ```{r Site Wide Plots}
+#bring in dataset of interest
+site <- read.csv("~/Masters/Flower_CactusBirdInteractionR/data/line_transects/line_transects.csv")
+head(site)
+
 #summary stats
 unique(site$species)
 #41 unique species
@@ -144,7 +149,15 @@ tuktab1$diff <- NULL
 tuktab1$lwr <- NULL 
 tuktab1$upr<- NULL 
 
+tuktab1 <- select(tuktab1$behav1, tuktab1$behav2, matches(tuktab1$p.adj))
+    # Filter out NA's
+    filter(!is.na(p.adj)) %>%
+    # Make into "wide" format using Var2
+    spread_(key = 'behav2', value = p.adj, fill = '')
 
+row.names(tuktab1) <- tuktab1$behav1
+  # And drop the Var1 column
+tuktab1 <- select(tuktab1, -behav1)
 
 #Very complicated, need a way to summarize results
 tuktab1 <- select(tuktab1$behavior.1, tuktab2$behavior.2, matches(tuktab1$p.adj))
@@ -156,42 +169,171 @@ acast(tuktab1, behavior.a ~ behavior.b , value.var='p.adj',
 
 ```
 
-```{r Site Wide Behavior Visuals only Stats}
-#We can see that there are differences in how behavior was observed, but let's redo and only consider visuals.
+###Bird Visitation
 
-#get counts for each behavior daily
-daily.behav.vis <- (data.frame(table(site_visuals$behavior, site_visuals$date, site_visuals$walk)))
+```{r Bird Visitation Plots}
+#bring in datasets of interest
+visit <- read.csv("~/Masters/Flower_CactusBirdInteractionR/data/mimic_flower_models/focal_bird_visitation.csv")
+head(visit)
 
-shapiro.test(daily.behav.vis$Freq)
-#it's normally distributed
+cam.trap.specs <- read.csv("~/Masters/Flower_CactusBirdInteractionR/data/mimic_flower_models/cam_trap_specs.csv")
 
-#run ANOVA 
-dba.vis <- aov(Freq ~ Var1, daily.behav.vis)
-summary(dba.vis)
-#p-value < 2e-16, very significant (as expected)
+#basemap for sunset cove
+cali <- get_map(location = c(lon = -115.663, lat = 34.7825), zoom = 17, color="bw")
 
-#Now see what stood out and in what direction
+#How does mimic model compare to real-flower model in terms of visitation?
+ggplot(visit, aes(x=experiment)) + geom_bar() 
 
-#Dunnett Test
-DunnettTest(formula = Freq ~ Var1, data = daily.behavior.vis)
+#Let's map the location of all cacti in experiments
+experiments <- ggmap(cali)
+experiments <- experiments + 
+  geom_point(data = visit, aes(x = longitude, y = latitude, colour = experiment, group = experiment), alpha = 3/10, size = 4) + 
+  labs(title = "Experimental Cacti", x = "longitude", y = "latitude", color = "Experiment")
+experiments
+#remember, we began using the same cacti for the second half of the experiment.
 
-#Tukey HSD
-tuk2 <- TukeyHSD(dba, "Var1", ordered = TRUE)
-tuktab2 <- data.frame(tuk2$Var1)
-tuktab2 <- tuktab2 %>% rownames_to_column("behavior") 
-tuktab2 <- transform(tuktab2, behavior = colsplit(behavior, split = "-", names = c('behavior1', 'behavior2'))) 
-tuktab2$diff <- NULL 
-tuktab2$lwr <- NULL 
-tuktab2$upr<- NULL
 
-#Very complicated, need a way to summarize results
-acast(tuktab1, behavior.a ~ behavior.b , value.var='p.adj', 
-      fun.aggregate=sum, margins=TRUE)
+#How does visitation differ between treatments by experiment type?
+ggplot(visit, aes(x=treatment)) + geom_bar() + facet_grid(. ~experiment)
+#Notice how pole was the same between both experiments
+
+#Treatment distribution by experiment
+treatments <- ggmap(cali)
+treatments <- treatments +
+  geom_point(data=visit, aes(x=longitude, y=latitude, colour = treatment, group = treatment), alpha = 3/10, size =4) +
+  labs(title = "Cacti Location for Each Experiment", x = "longitude", y = "latitude", color = "Treatment") + facet_grid(.~experiment)
+treatments
+#problem because we don't actually see real-flower treatment of 15 because it had no visitations at all, so no records within this dataset. 
+
+
+#Distribution of bird species by experiment
+ggplot(visit, aes(x=taxa)) + geom_bar() + facet_grid(experiment ~.) + theme(axis.text.x = element_text(angle = 60, hjust =1))
+
+#Map species of bird visitations to the cacti.
+birds.at.cacti <- ggmap(cali)
+birds.at.cacti <- birds.at.cacti +
+  geom_point(data=visit, aes(x=longitude, y=latitude, colour = taxa, group = taxa), alpha = 3/10, size =4) +
+  labs(title = "Bird Visitations to Cacti", x = "longitude", y = "latitude", color = "Species") + facet_grid(.~experiment)
+birds.at.cacti
+
+
+#Distribution of behaviors 
+ggplot(visit, aes(x=behavior)) + geom_bar() + facet_grid(experiment ~.) + theme(axis.text.x = element_text(angle = 60, hjust =1))
+#Interesting to think about behaviors that aren't necessarily pollinating, but are indicative of a bird occupying that space/claiming territory (sparring, calling for example).
+
+#Behavior map
+behavior.map <- ggmap(cali)
+behavior.map <- behavior.map +
+  geom_point(data=visit, aes(x=longitude, y=latitude, colour = behavior, group = behavior), alpha = 3/10, size =4) +
+  labs(title = "Cacti Location for Each Experiment", x = "longitude", y = "latitude", color = "Behavior") + facet_grid(.~experiment)
+behavior.map
+
+
+#All we've mapped so far is including non-pollinating behaviors.
+#Let's double check for only pollinators
+pollinators <- filter(visit, visit$behavior == "Pollinating")
+#Notice it removes half of observations! Goes from 88 to 44 observations
+
+ggplot(pollinators, aes(x=treatment)) + geom_bar() + facet_grid(. ~experiment)
+#removes treatment zero (no occurrences in either experiment of pollinating at a plant without flowers, this much is obviously expected), and shows no difference between fifteen, pole, and thirty for mimics.
+
+#Pollinating behaviors by treatment for each experiment
+pollinate.treatments <- ggmap(cali)
+pollinate.treatments <- pollinate.treatments +
+  geom_point(data=visit, aes(x=longitude, y=latitude, colour = treatment, group = treatment), alpha = 3/10, size =4) +
+  labs(title = "Pollination by treatment", x = "longitude", y = "latitude", color = "Treatment") + facet_grid(.~experiment)
+pollinate.treatments
+
+
+#Map specs for camera traps, which does not take into account redos
+#Experiment locations together
+cam.traps.ex <- ggmap(cali)
+cam.traps.ex <- cam.traps.ex +
+  geom_point(data = cam.trap.specs, aes(x=longitude, y=latitude, colour = experiment, group = experiment), alpha = 3/10, size = 4) +
+  labs(title = "Cactus Individuals by Experiment", x = "longitude", y = "latitude", color = "Experiment") 
+cam.traps.ex
+
+#Treatment locations facetted by experiment
+cam.traps.treat <- ggmap(cali)
+cam.traps.treat <- cam.traps.treat +
+  geom_point(data = cam.trap.specs, aes(x=longitude, y=latitude, colour = treatment, group = treatment), alpha =3/10, size = 4) +
+  labs(title = "Treatment Locations: Camera traps", x = "longitude", y = "latitude", color = "Treatment") +
+  facet_grid(.~experiment)
+cam.traps.treat
+
+```
+
+```{r Temperature of Cactus Arhitecture}
+#Bring in relevant datasets
+hobo <- read.csv("~/Masters/Flower_CactusBirdInteractionR/data/mimic_flower_models/cactus_architecture_temperature.csv")
+head(hobo)
+
+#remove na (from cactus 6 and 8)
+hobo <- na.omit(hobo, col = c(5:6))
+
+#Temperature throughout both experiments, raw data
+temp <- ggplot(hobo, aes(x = date.time, y = temp, colour = experiment)) +
+  geom_line() +
+  theme(axis.text.x = element_blank()) +
+  labs(title = "Temperature through both experiments", x = "Time", y = "Tempearture (F)", color = "Experiment")
+temp 
+
+#Light throughout both experiments, raw dat
+light <- ggplot(hobo, aes(x = date.time, y = light, colour = experiment)) +
+  geom_line() +
+  theme(axis.text.x = element_blank()) +
+  labs(title = "Light intensity through both experiments", x = "Time", y = "Light (Lumens/ft^2)", color = "Experiment")
+light
+
+#Get stat summaries by cactus in neat dataframe
+summary1 <- hobo %>% group_by(cactus) %>% summarise_at(vars(temp), funs(mean, sd, min, max))
+summary2 <- hobo %>% group_by(cactus) %>% summarise_at(vars(light), funs(mean, sd, min, max))
+summary <- left_join(summary1, summary2, by = "cactus")
+names(summary) <- c("cactus", "mean.temp", "sd.temp", "min.temp", "max.temp", "mean.light", "sd.light", "min.light", "max.light")
+summary <- mutate(summary, sd.min.temp = mean.temp - sd.temp) 
+summary <-  mutate(summary, sd.max.temp = mean.temp + sd.temp)
+summary <-  mutate(summary, sd.min.light = mean.light - sd.light)
+summary <-  mutate(summary, sd.max.light = mean.light + sd.light)
+
+#mean temperatures of each cactus
+#first as a bargraph
+temp.mean.bar <- ggplot(summary, aes(x = cactus, y = mean.temp)) +
+  geom_bar(stat = "identity") + geom_errorbar(summary, mapping = aes(ymin = sd.min.temp, ymax = sd.max.temp)) +
+  labs(title = "Mean temperatures of each cactus", x = "Cactus ID", y = "Mean Temperature (F)") +
+  scale_x_continuous(breaks=seq(1, 20, 1)) +
+  theme_minimal()
+temp.mean.bar
+
+#then as a boxplot
+temp.mean.boxplot <- ggplot(hobo, aes(x = cactus, y = temp, group = cactus)) +
+  geom_boxplot() +
+  labs(title = "Mean temperatures of each cactus", x = "Cactus ID", y = "Mean temperature (F)") +
+  theme_minimal()
+temp.mean.boxplot
+
+#mean light intensity for each cactus
+light.mean.bar <- ggplot(summary, aes(x = cactus, y = mean.light)) +
+  geom_bar(stat = "identity") + geom_errorbar(summary, mapping = aes(ymin = sd.min.temp, ymax = sd.max.temp)) + 
+  labs(title = "Mean light intensity of each cactus", x = "Cactus ID", y = "Mean Light Intensity (Lumns/ft^2)") + 
+  scale_x_continuous(breaks=seq(1, 20, 1)) +
+  theme_minimal()
+light.mean.bar
 
 
 ```
 
-```{r Site Wide diversity stats}
 
-```
+
+
+
+
+
+
+
+Some take aways to consider for August:
+
+Should we continue camera trapping, focal observations, and cube video-ing? I'm inclined to say scrap focal observations and instead up the frequency of video footage and camera trapping. Althought camera traps are not picking up hummingbirds accurately, more comprehensive data on other, non-bird visitors would still be a nice dataset. Camera trapping is also very low effort when raised above grassline. 
+
+Should we deploy cameras/cubes at shrub and open areas still? I'm inclined to say no. Originally, these were options as alternate controls in my design, and we scrapped them. I brought them back because they were relatively low effort, but I still do not think these were necessary or answering any precise questions that the other four treatments did not address.Perhaps best to scrap again for August and save time. 
+
 
