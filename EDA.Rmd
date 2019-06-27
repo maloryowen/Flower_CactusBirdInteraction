@@ -21,6 +21,15 @@ library(tidyverse)
 library(reshape)
 library(reshape2)
 library(ggmap)
+<<<<<<< HEAD
+=======
+
+register_google(key="AIzaSyDr2QtkqFJOs6KQZ68B3WTL6nrEBVWoQ8A")
+```
+
+```{r datasets, include=FALSE}
+
+>>>>>>> 615307322d01664e6ee99820bf1e60d543384d9a
 
 register_google(key="")
 ```
@@ -272,6 +281,7 @@ cam.traps.treat
 hobo <- read.csv("~/Masters/Flower_CactusBirdInteractionR/data/mimic_flower_models/cactus_architecture_temperature.csv")
 head(hobo)
 
+<<<<<<< HEAD
 hobo.specs <- read.csv("~/Masters/Flower_CactusBirdInteractionR/data/mimic_flower_models/pendant_specs.csv")
 head(hobo.specs)
 
@@ -289,6 +299,11 @@ arch.map <- arch.map +
   labs(title = "Cactus architecture influence on temperature/light", x = "longitude", y = "latitude", color = "experiment") 
 arch.map
 
+=======
+#remove na (from cactus 6 and 8)
+hobo <- na.omit(hobo, col = c(5:6))
+
+>>>>>>> 615307322d01664e6ee99820bf1e60d543384d9a
 #Temperature throughout both experiments, raw data
 temp <- ggplot(hobo, aes(x = date.time, y = temp, colour = experiment)) +
   geom_line() +
@@ -330,13 +345,17 @@ temp.mean.boxplot <- ggplot(hobo, aes(x = cactus, y = temp, group = cactus)) +
 temp.mean.boxplot
 
 #mean light intensity for each cactus
+<<<<<<< HEAD
 #first as a bargraph
+=======
+>>>>>>> 615307322d01664e6ee99820bf1e60d543384d9a
 light.mean.bar <- ggplot(summary, aes(x = cactus, y = mean.light)) +
   geom_bar(stat = "identity") + geom_errorbar(summary, mapping = aes(ymin = sd.min.temp, ymax = sd.max.temp)) + 
   labs(title = "Mean light intensity of each cactus", x = "Cactus ID", y = "Mean Light Intensity (Lumns/ft^2)") + 
   scale_x_continuous(breaks=seq(1, 20, 1)) +
   theme_minimal()
 light.mean.bar
+<<<<<<< HEAD
 
 #then as a boxplot
 light.mean.boxplot <- ggplot(hobo, aes(x = cactus, y = light, group = cactus)) +
@@ -449,9 +468,26 @@ summary(arch.volume.temp.model)
 allo <- read.csv("~/Masters/Flower_CactusBirdInteractionR/data/paired_flower_fruit/paired_flower_fruit.csv")
 head(allo)
 
+paired.fruit.flower.basemap <- get_map(location = c(lon = -115.662, lat = 34.7813), zoom = 19, color = "bw")
+
+allo.volume.buds <- ggmap(paired.fruit.flower.basemap)
+allo.volume.buds <- allo.volume.buds +
+   scale_color_gradient(low="#8CF554", high="#F59154") +
+   geom_point(data = allo, aes(x = lon, y = lat, size = volume, color = buds), alpha = 6/10) 
+allo.volume.buds
+
+
+
+
+```
+
+
+>>>>>>> 615307322d01664e6ee99820bf1e60d543384d9a
+
 #map the cacti in the survey's location
 paired.fruit.flower.basemap <- get_map(location = c(lon = -115.662, lat = 34.7814), zoom = 19, color = "bw")
 
+<<<<<<< HEAD
 ?get_map
 
 allo.map <- ggmap(paired.fruit.flower.basemap)
@@ -470,8 +506,19 @@ allo.volume.buds
 install.packages("viridis")
 library(viridis)
  
+=======
 
-```
+>>>>>>> 615307322d01664e6ee99820bf1e60d543384d9a
+
+
+
+
+Some take aways to consider for August:
+
+Should we continue camera trapping, focal observations, and cube video-ing? I'm inclined to say scrap focal observations and instead up the frequency of video footage and camera trapping. Althought camera traps are not picking up hummingbirds accurately, more comprehensive data on other, non-bird visitors would still be a nice dataset. Camera trapping is also very low effort when raised above grassline. 
+
+Should we deploy cameras/cubes at shrub and open areas still? I'm inclined to say no. Originally, these were options as alternate controls in my design, and we scrapped them. I brought them back because they were relatively low effort, but I still do not think these were necessary or answering any precise questions that the other four treatments did not address.Perhaps best to scrap again for August and save time. 
+
 
 
 
