@@ -1,21 +1,21 @@
 ---
 title: "EDA: Cactus Flowering Season Exploratory Data Analysis"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 ---
 
 Here, we will explore the data collected during the Spring 2019 flowering field season at the Granite Mountains desert research center. 
 
 Some key datasets:
 * Bird visitation: the number of bird visitations to a focal cactus individual, with manipulated showiness of flowers (both real and fake) on a cactus at zero, fifteen, and thirty flowers per cactus. First dataset is only focal 1 hour observations. 
-* Cactus allocation: a measurement of reproductive and non reproductive structures of 100 cactus indivduals. This dataset will be paired with data on fruit production of the same individuals.
+* Cactus allocation: a measurement of reproductive and non reproductive structures of 100 cactus individuals. This dataset will be paired with data on fruit production of the same individuals.
 * Side Wide: entire-site measurements of bird diversity, mesohabitats, and behaviors collected by line transect walks
 * Cactus architecture temperature: records of micro-habitat temperature related to cacti by measuring the top of the cactus's canopy, within the cactus's canopy, and the cactus's understory.
 
 
-```{r libraries}
+```{r libraries, warning=FALSE}
 #libraries to include
 library(ggplot2)
 library(dplyr)
@@ -437,6 +437,7 @@ cam.trap.specs <- read.csv("~/Masters/Flower_CactusBirdInteractionR/data/mimic_f
 #Visitations (including non-pollinating behaviors)
 avg_treatment <- count(visit, vars=treatment, wt_var=experiment)
 #fifiteen on flowers experiment did not have any sort of visitation at all
+avg_treatment
 
 
 #basemap for sunset cove
@@ -783,9 +784,9 @@ summary(allo.m4)
 
 
 
-Some take aways to consider for August:
+Some takeaways to consider for August:
 
-Should we continue camera trapping, focal observations, and cube video-ing? I'm inclined to say scrap focal observations and instead up the frequency of video footage and camera trapping. Althought camera traps are not picking up hummingbirds accurately, more comprehensive data on other, non-bird visitors would still be a nice dataset. Camera trapping is also very low effort when raised above grassline. 
+Should we continue camera trapping, focal observations, and cube video-ing? I'm inclined to say scrap focal observations and instead up the frequency of video footage and camera trapping. Although camera traps are not picking up hummingbirds accurately, more comprehensive data on other, non-bird visitors would still be a nice dataset. Camera trapping is also very low effort when raised above grass-line. 
 
 Should we deploy cameras/cubes at shrub and open areas still? I'm inclined to say no. Originally, these were options as alternate controls in my design, and we scrapped them. I brought them back because they were relatively low effort, but I still do not think these were necessary or answering any precise questions that the other four treatments did not address.Perhaps best to scrap again for August and save time. 
 
