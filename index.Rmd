@@ -1,12 +1,15 @@
 ---
 title: "EDA: Cactus Flowering Season Exploratory Data Analysis"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 Here, we will explore the data collected during the Spring 2019 flowering field season at the Granite Mountains desert research center. 
+
+![Buckhorn Cholla, *Cylindropuntia acanthocarpa*, with real flowers](flower.jpg)
+![Buckhorn Cholla, *Cylindropuntia acanthocarpa*, with mimic flowers](mimic.jpg)
 
 Some key datasets:
 * Bird visitation: the number of bird visitations to a focal cactus individual, with manipulated showiness of flowers (both real and fake) on a cactus at zero, fifteen, and thirty flowers per cactus. First dataset is only focal 1 hour observations. 
@@ -31,7 +34,7 @@ library(DT)
 
 ```{r api key, include = FALSE}
 
-register_google(key="AIzaSyBTfa-6x1tmeuVFVYhc8MMkmuUuKOALLNc")
+register_google(key="")
 
 ```
 
